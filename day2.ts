@@ -37,14 +37,14 @@ function parseInput(input: string): Game[] {
     return result;
 }
 
-function day2(input: string) {
+export function day2(input: string) {
     return parseInput(input).filter((g) => {
         return g.sets.every((a) => a.red <= 12 && a.blue <= 14 && a.green <= 13);
     }).map(g => g.id).reduce((a, b) => a + b);
 
 }
 
-function day2part2(input: string) {
+export function day2part2(input: string) {
     return parseInput(input)
         .map(g => {
             const maxBlue = Math.max(...g.sets.map(s => s.blue))
