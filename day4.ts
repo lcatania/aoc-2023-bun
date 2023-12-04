@@ -28,12 +28,9 @@ export function day4part2(input: string) {
         const winningNumbers = line.split('|')[0].split(":")[1].trimStart().trimEnd().split(" ").filter(n => n !== "").map(Number);
         const matchingNumbers = line.split('|')[1].trimStart().trimEnd().split(" ").filter(n => n !== "").map(Number);
         const value = new Set([...matchingNumbers].filter(x => new Set([...winningNumbers]).has(x))).size;
-        if (value > 0)
-            p1 += 2 ** (value - 1)
         for (let j = 0; j < value; j++) {
             result[(i + 1 + j)] = (result[(i + 1 + j)] ?? 0) + result[i]
         }
     })
-    console.log(p1)
-    console.log(Object.values(result).reduce((a, b) => a + b))
+    return Object.values(result).reduce((a, b) => a + b)
 }
