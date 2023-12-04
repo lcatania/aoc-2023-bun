@@ -17,8 +17,7 @@ export function day4(input: string) {
 }
 
 export function day4part2(input: string) {
-    let result: { [key: string]: number } = {}
-    let p1 = 0
+    let result: { [key: string]: number } = {};
     input.split("\n").forEach((line, i) => {
         if (!result[i])
             result[i] = 1
