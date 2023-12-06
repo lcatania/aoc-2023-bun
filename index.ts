@@ -1,38 +1,9 @@
-import { day5part2 } from "./day5"
+import { day6, day6part2 } from "./day6"
 
-const input = `seeds: 79 14 55 13
+const input = `Time:        42     89     91     89
+Distance:   308   1170   1291   1467`
 
-seed-to-soil map:
-50 98 2
-52 50 48
+console.log(day6part2(input))
 
-soil-to-fertilizer map:
-0 15 37
-37 52 2
-39 0 15
 
-fertilizer-to-water map:
-49 53 8
-0 11 42
-42 0 7
-57 7 4
 
-water-to-light map:
-88 18 7
-18 25 70
-
-light-to-temperature map:
-45 77 23
-81 45 19
-68 64 13
-
-temperature-to-humidity map:
-0 69 1
-1 0 69
-
-humidity-to-location map:
-60 56 37
-56 93 4`
-
-// const input = await Bun.file("./input/day5.txt").text();
-console.log(day5part2(input))
