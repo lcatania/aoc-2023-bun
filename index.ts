@@ -1,9 +1,24 @@
-import { day6, day6part2 } from "./day6"
 
-const input = `Time:        42     89     91     89
-Distance:   308   1170   1291   1467`
+// const input = `32T3K 765
+// T55J5 684
+// KK677 28
+// KTJJT 220
+// QQQJA 483`
 
-console.log(day6part2(input))
+import { day7 } from "./day7";
+
+const input = await Bun.file('./input/day7.txt').text();
+
+
+
+
+
+
+
+
+
+
+console.log(day7(input))
 
 
 
