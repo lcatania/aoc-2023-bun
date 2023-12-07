@@ -5,20 +5,12 @@
 // KTJJT 220
 // QQQJA 483`
 
-import { day7 } from "./day7";
+import { day7part2 } from "./day7";
 
 const input = await Bun.file('./input/day7.txt').text();
 
 
-
-
-
-
-
-
-
-
-console.log(day7(input))
+console.log(day7part2(input))
 
 
 
