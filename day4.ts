@@ -23,7 +23,6 @@ export function day4part2(input: string) {
             result[i] = 1
         else
             result[i] += 1;
-        const cards = line.split('|')[0].split(":")[0]
         const winningNumbers = line.split('|')[0].split(":")[1].trimStart().trimEnd().split(" ").filter(n => n !== "").map(Number);
         const matchingNumbers = line.split('|')[1].trimStart().trimEnd().split(" ").filter(n => n !== "").map(Number);
         const value = new Set([...matchingNumbers].filter(x => new Set([...winningNumbers]).has(x))).size;
