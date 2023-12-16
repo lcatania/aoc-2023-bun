@@ -1,17 +1,18 @@
-// const input = `O....#....
-// O.OO#....#
-// .....##...
-// OO.#O....O
-// .O.....O#.
-// O.#..O.#.#
-// ..O..#O..O
-// .......O..
-// #....###..
-// #OO..#....`
+// const input = `.|...\....
+// |.-.\.....
+// .....|-...
+// ........|.
+// ..........
+// .........\
+// ..../.\\..
+// .-.-/..|..
+// .|....-|.\
+// ..//.|....`
 
-import { day15, day15part2 } from "./day15"
+import { day16, day16part2 } from "./day16"
 
-// import { day14, day14part2 } from "./day14"
-const input = await Bun.file('./input/day15.txt').text()
 
-console.log(day15part2(input))
+const input = await Bun.file('./input/day16.txt').text()
+
+
+console.log(day16part2(input))
