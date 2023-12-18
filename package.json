@@ -10,5 +10,8 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "js-sdsl": "^4.4.2"
   }
 }
