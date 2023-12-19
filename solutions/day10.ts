@@ -80,7 +80,7 @@ export function day10(input: string) {
             if (cell === 'S') {
                 startNodeNr = getNodeNumber(x, y, width);
             }
-            const neighbors = getNeighborOffsets(cell).map(offset => getNodeNumber(x + offset.x, y + offset.y));
+            const neighbors = getNeighborOffsets(cell).map(offset => getNodeNumber(x + offset.x, y + offset.y, width));
             nodeList.push({ x, y, cell, neighbors, visited: false, filled: false });
         }
     }
@@ -124,7 +124,7 @@ export function day10part2(input: string) {
             if (cell === 'S') {
                 startNodeNr = getNodeNumber(x, y, width);
             }
-            const neighbors = getNeighborOffsets(cell).map(offset => getNodeNumber(x + offset.x, y + offset.y,width));
+            const neighbors = getNeighborOffsets(cell).map(offset => getNodeNumber(x + offset.x, y + offset.y, width));
             nodeList.push({ x, y, cell, neighbors, visited: false, filled: false });
         }
     }
