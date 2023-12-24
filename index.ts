@@ -1,6 +1,5 @@
-import { day23, day23part2 } from "./solutions/day23";
+import { day24, day24part2 } from "./solutions/day24"
 
-const input = await Bun.file('./input/day23.txt').text(); 
+const input = await Bun.file("./input/day24.txt").text()
 
-
-console.log(day23part2(input))
+console.log(await day24part2(input))
