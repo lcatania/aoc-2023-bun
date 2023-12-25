@@ -1,126 +1,263 @@
-import { init } from 'z3-solver';
-
-
-export interface Vector2 {
+type Point3D = {
     x: number;
     y: number;
-}
+    z: number;
+};
 
-export interface Ray2 extends Vector2 {
-    vx: number
-    vy: number
-}
+type Vector3D = {
+    x: number;
+    y: number;
+    z: number;
+};
 
-// I caved and asked ChatGPT for a ray intersection function...
-function findRayIntersection(ray1: Ray2, ray2: Ray2): Vector2 | null {
-    const determinant = ray1.vx * ray2.vy - ray1.vy * ray2.vx
+type PointAndVector3D = {
+    point: Point3D;
+    vector: Vector3D;
+};
 
-    if (determinant === 0) return null // If determinant is 0, the rays are parallel and do not intersect
+type Point = {
+    x: number;
+    y: number;
+};
 
-    const t1 = ((ray2.x - ray1.x) * ray2.vy - (ray2.y - ray1.y) * ray2.vx) / determinant
-    const t2 = ((ray2.x - ray1.x) * ray1.vy - (ray2.y - ray1.y) * ray1.vx) / determinant
+type Vector = {
+    x: number;
+    y: number;
+};
 
-    // Check if intersection point is within the rays
-    if (t1 >= 0 && t2 >= 0) {
+type PointAndVector = {
+    point: Point;
+    vector: Vector;
+};
+
+type IntersectionResult =
+    | {
+        type: 'colinear' | 'parallel' | 'non-intersecting';
+    }
+    | { type: 'intersecting'; point: Point };
+
+function parseInputPart1(input: string): PointAndVector3D[] {
+    return input.split("\n").map((line) => {
+        // 12, 31, 28 @ -1, -2, -1
+        const regex = /(\d+),\s+(\d+),\s+(\d+)\s+@\s+(-?\d+),\s+(-?\d+),\s+(-?\d+)/;
+        const match = line.match(regex);
+        if (!match) throw 'Could not parse line: ' + line;
+
+        // For part 1 we are only using x + y
         return {
-            x: ray1.x + t1 * ray1.vx,
-            y: ray1.y + t1 * ray1.vy,
+            point: {
+                x: parseInt(match[1]),
+                y: parseInt(match[2]),
+                z: parseInt(match[3]),
+            },
+            vector: {
+                x: parseInt(match[4]),
+                y: parseInt(match[5]),
+                z: parseInt(match[6]),
+            },
+        };
+    });
+};
+
+function intersect<T>(one: T[], two: T[]) { return one.filter((x) => two.includes(x)) }
+
+function crossProduct(v: Point, w: Point): number {
+    return v.x * w.y - v.y * w.x;
+
+}
+
+function subtractPoints(v: Point, w: Point): Point {
+    return ({
+        x: v.x - w.x,
+        y: v.y - w.y,
+    });
+}
+
+function addPoints(v: Point, w: Point): Point {
+    return ({
+        x: v.x + w.x,
+        y: v.y + w.y,
+    })
+};
+
+// https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282
+function findIntersection(
+    p: PointAndVector,
+    q: PointAndVector,
+): IntersectionResult {
+
+    const rs = crossProduct(p.vector, q.vector);
+    const qpr = crossProduct(subtractPoints(q.point, p.point), p.vector);
+
+    if (rs === 0 && qpr === 0) {
+        return { type: 'colinear' };
+    }
+    if (rs === 0 && qpr !== 0) {
+        return { type: 'parallel' };
+    }
+    if (rs !== 0) {
+        const t =
+            crossProduct(subtractPoints(q.point, p.point), q.vector) /
+            crossProduct(p.vector, q.vector);
+        const u =
+            crossProduct(subtractPoints(q.point, p.point), p.vector) /
+            crossProduct(p.vector, q.vector);
+
+        if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+            const tr = { x: p.vector.x * t, y: p.vector.y * t };
+
+            return { type: 'intersecting', point: addPoints(p.point, tr) };
+        }
+    }
+    return { type: 'non-intersecting' };
+};
+
+function findRockVelocity(
+    hailstones: PointAndVector3D[],
+): { vx: number; vy: number; vz: number } {
+    let xVelocities = undefined;
+    let yVelocities = undefined;
+    let zVelocities = undefined;
+
+    // Determine rock velocity by finding pairs of hailstones that have the same velocity
+    // along a given axis. The relative velocity of the rock to the hailstone in this axis
+    // must be a divisor of the point difference of those hailstones. This will give us several
+    // possible values, but if we apply this to all the pairs we can hopefully narrow down to
+    // a single value.
+    // This only works because the input set has these duplicates in!
+    for (let h1Index = 0; h1Index < hailstones.length; h1Index++) {
+        const h1 = hailstones[h1Index];
+        for (let h2Index = h1Index + 1; h2Index < hailstones.length; h2Index++) {
+            const h2 = hailstones[h2Index];
+
+            if (h1.vector.x === h2.vector.x) {
+                const velocityCandidates = new Set<number>();
+                for (let vTest = -500; vTest < 500; vTest++) {
+                    if (Math.abs(h2.point.x - h1.point.x) % (vTest - h1.vector.x) == 0) {
+                        velocityCandidates.add(vTest);
+                    }
+                }
+                xVelocities =
+                    xVelocities !== undefined
+                        ? new Set<number>(
+                            intersect([...xVelocities], [...velocityCandidates]),
+                        )
+                        : new Set<number>(velocityCandidates);
+            }
+
+            if (h1.vector.y === h2.vector.y) {
+                const velocityCandidates = new Set<number>();
+                for (let vTest = -500; vTest < 500; vTest++) {
+                    if (Math.abs(h2.point.y - h1.point.y) % (vTest - h1.vector.y) == 0) {
+                        velocityCandidates.add(vTest);
+                    }
+                }
+                yVelocities =
+                    yVelocities !== undefined
+                        ? new Set<number>(
+                            intersect([...yVelocities], [...velocityCandidates]),
+                        )
+                        : new Set<number>(velocityCandidates);
+            }
+
+            if (h1.vector.z === h2.vector.z) {
+                const velocityCandidates = new Set<number>();
+                for (let vTest = -500; vTest < 500; vTest++) {
+                    if (Math.abs(h2.point.z - h1.point.z) % (vTest - h1.vector.z) == 0) {
+                        velocityCandidates.add(vTest);
+                    }
+                }
+                zVelocities =
+                    zVelocities !== undefined
+                        ? new Set<number>(
+                            intersect([...zVelocities], [...velocityCandidates]),
+                        )
+                        : new Set<number>(velocityCandidates);
+            }
         }
     }
 
-    return null // rays do not intersect
-}
+    if (xVelocities!.size > 1 || yVelocities!.size > 1 || zVelocities!.size > 1)
+        throw 'Could not determine velocities';
 
-function getCombinations<T>(items: T[]) {
-    const result: T[][] = []
-    for (let i = 0; i < items.length; i++) {
-        for (let j = i + 1; j < items.length; j++) {
-            result.push([items[i], items[j]])
+    return {
+        vx: [...xVelocities!.values()][0],
+        vy: [...yVelocities!.values()][0],
+        vz: [...zVelocities!.values()][0],
+    };
+};
+
+export function day24part2(input: string, boundMin: number, boundMax: number) {
+    const hailstones = parseInputPart1(input);
+
+    const { vx, vy, vz } = findRockVelocity(hailstones);
+
+    const scale = 100000000000000;
+    const h1 = hailstones[0];
+
+    h1.vector.x = (h1.vector.x - vx) * scale;
+    h1.vector.y = (h1.vector.y - vy) * scale;
+    h1.vector.z = (h1.vector.z - vz) * scale;
+
+    const h2 = hailstones[1];
+
+    // Adjust velocity so it is relative to the rock
+    h2.vector.x = (h2.vector.x - vx) * scale;
+    h2.vector.y = (h2.vector.y - vy) * scale;
+    h2.vector.z = (h2.vector.z - vz) * scale;
+
+    // Find an intersection of these two new "lines"
+    let result = findIntersection(h1, h2);
+
+    if (result.type !== 'intersecting') throw 'Could not find interesecting line';
+
+    const x = Math.round(result.point!.x);
+    const y = Math.round(result.point!.y);
+    h1.vector.x = h1.vector.z;
+    h1.point.x = h1.point.z;
+    h2.vector.x = h2.vector.z;
+    h2.point.x = h2.point.z;
+
+    result = findIntersection(h1, h2);
+
+    if (result.type !== 'intersecting') throw 'Could not find interesecting line';
+
+    const z = Math.round(result.point!.x);
+
+    console.log(x);
+    console.log(y);
+    console.log(z);
+    console.log(x + y + z);
+};
+
+export function day24(input: string, boundMin: number, boundMax: number) {
+    const hailstones = parseInputPart1(input);
+
+    const t = 1000000000000000;
+    for (const hailstone of hailstones) {
+        hailstone.vector.x *= t;
+        hailstone.vector.y *= t;
+    }
+
+    let intersecting = 0;
+
+    for (let h1 = 0; h1 < hailstones.length; h1++) {
+        for (let h2 = h1 + 1; h2 < hailstones.length; h2++) {
+            const hailstone1 = hailstones[h1];
+            const hailstone2 = hailstones[h2];
+
+            const result = findIntersection(hailstone1, hailstone2);
+            if (
+                result.type === 'intersecting' &&
+                result.point!.x >= boundMin &&
+                result.point!.x <= boundMax &&
+                result.point!.y >= boundMin &&
+                result.point!.y <= boundMax
+            ) {
+                intersecting++;
+            }
         }
     }
-    return result
-}
-export function day24(input: string) {
-    let min = 200_000_000_000_000, max = 400_000_000_000_000
 
-    const stones = input
-        .trim()
-        .split(/\r?\n/)
-        .filter(x => x)
-        .map(line => line.split("@"))
-        .map(([position, velocity]) => [position.split(","), velocity.split(",")])
-        .map(([positions, velocities]) => [positions.map(n => parseInt(n)), velocities.map(n => parseInt(n))])
-        .map(([[x, y, z], [vx, vy, vz]]) => ({ x, y, z, vx, vy, vz }))
-    const result = getCombinations(stones)
-        .map(([stone1, stone2]) => findRayIntersection(stone1, stone2))
-        .filter(i => !!i)
-        .map(i => i as Vector2) // Tell TypeScript it's okay
-        .filter(i => i.x >= min && i.x <= max && i.y >= min && i.y <= max)
-        .length
-
-    return result;
-}
-
-
-export async function day24part2(input: string) {
-    const stones = input
-        .trim()
-        .split(/\r?\n/)
-        .filter(x => x)
-        .map(line => line.split("@"))
-        .map(([position, velocity]) => [position.split(","), velocity.split(",")])
-        .map(([positions, velocities]) => [positions.map(n => parseInt(n)), velocities.map(n => parseInt(n))])
-        .map(([[x, y, z], [vx, vy, vz]]) => ({ x, y, z, vx, vy, vz }))
-
-    const { Context, em } = await init();
-    const { Solver, Int } = Context('main');
-
-    const X = Int.const('X');
-    const Y = Int.const('Y');
-    const Z = Int.const('Z');
-
-    const VX = Int.const('VX');
-    const VY = Int.const('VY');
-    const VZ = Int.const('VZ');
-
-    const solver = new Solver();
-
-    for (let i = 0; i < 3; i++) {
-        const t = Int.const(`t${i}`);
-
-        const x = Int.val(stones[i].x);
-        const vx = Int.val(stones[i].vx);
-
-        const y = Int.val(stones[i].y);
-        const vy = Int.val(stones[i].vy);
-
-        const z = Int.val(stones[i].z);
-        const vz = Int.val(stones[i].vz);
-
-        solver.add(
-            t.gt(0),
-            X.add(VX.mul(t)).eq(x.add(vx.mul(t))),
-            Y.add(VY.mul(t)).eq(y.add(vy.mul(t))),
-            Z.add(VZ.mul(t)).eq(z.add(vz.mul(t))),
-        );
-    }
-
-    if (await solver.check() === 'sat') {
-        const model = solver.model();
-
-        const [
-            x,
-            y,
-            z,
-        ] = [
-                Number(model.eval(X).toString()),
-                Number(model.eval(Y).toString()),
-                Number(model.eval(Z).toString()),
-            ];
-
-        em.PThread.terminateAllThreads();
-        return x + y + z;
-    }
-
-    return undefined;
+    return intersecting
 }
