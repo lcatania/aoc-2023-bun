@@ -224,10 +224,7 @@ export function day24part2(input: string, boundMin: number, boundMax: number) {
 
     const z = Math.round(result.point!.x);
 
-    console.log(x);
-    console.log(y);
-    console.log(z);
-    console.log(x + y + z);
+    return x + y + z;
 };
 
 export function day24(input: string, boundMin: number, boundMax: number) {
